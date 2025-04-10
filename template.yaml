@@ -33,7 +33,7 @@ Resources:
     Type: AWS::Serverless::StateMachine
     Properties:
       Name: AgentStepFunction
-      DefinitionUri: ./statemachine/agentFlow.asl.json
+      DefinitionUri: statemachine/agentflow.asl.json
       Role: !GetAtt StepFunctionExecutionRole.Arn
       Logging:
         Destinations:
