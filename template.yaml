@@ -1,0 +1,82 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Step Function for chaining Lambda agents dynamically.
+
+Globals:
+  Function:
+    Timeout: 60
+
+Resources:
+  AgentStateMachineLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /aws/states/AgentStepFunctionLogs
+      RetentionInDays: 7
+
+
+  AgentRegistryTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: AgentRegistry
+      AttributeDefinitions:
+        - AttributeName: agent_name
+          AttributeType: S
+      KeySchema:
+        - AttributeName: agent_name
+          KeyType: HASH
+      BillingMode: PAY_PER_REQUEST
+      OnDemandThroughput:
+        MaxReadRequestUnits: 100
+        MaxWriteRequestUnits: 50
+
+  AgentStepFunction:
+    Type: AWS::Serverless::StateMachine
+    Properties:
+      Name: AgentStepFunction
+      DefinitionUri: statemachine/agentFlow.asl.json
+      Role: !GetAtt StepFunctionExecutionRole.Arn
+      Logging:
+        Destinations:
+          - CloudWatchLogsLogGroup:
+              LogGroupArn: !GetAtt AgentStateMachineLogGroup.Arn
+        Level: ALL  # Options: OFF, ERROR, ALL
+        IncludeExecutionData: true
+
+  StepFunctionExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: states.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: StepFunctionPermissions
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: 
+                  - "lambda:InvokeFunction"
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - "dynamodb:GetItem"
+                Resource: !GetAtt AgentRegistryTable.Arn
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogDelivery
+                  - logs:GetLogDelivery
+                  - logs:UpdateLogDelivery
+                  - logs:DeleteLogDelivery
+                  - logs:ListLogDeliveries
+                  - logs:PutResourcePolicy
+                  - logs:DescribeResourcePolicies
+                  - logs:DescribeLogGroups
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: "*"
+

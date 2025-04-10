@@ -1,0 +1,51 @@
+{
+    "StartAt": "InvokeLambda",
+    "States": {
+        "InvokeLambda": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::lambda:invoke",
+            "Parameters": {
+                "FunctionName.$": "$.lambda_arn",
+                "Payload.$": "$.input"
+            },
+            "ResultPath": "$.lambda_result",
+            "Next": "CheckNextAgent"
+        },
+        "CheckNextAgent": {
+            "Type": "Choice",
+            "Choices": [
+                {
+                    "Variable": "$.lambda_result.Payload.next_agent",
+                    "StringEquals": "END",
+                    "Next": "Done"
+                }
+            ],
+            "Default": "GetLambdaArn"
+        },
+        "GetLambdaArn": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::aws-sdk:dynamodb:getItem",
+            "Parameters": {
+                "TableName": "AgentRegistry",
+                "Key": {
+                    "agent_name": {
+                        "S.$": "$.lambda_result.Payload.next_agent"
+                    }
+                }
+            },
+            "ResultPath": "$.dynamo_result",
+            "Next": "SetNextFunctionName"
+        },
+        "SetNextFunctionName": {
+            "Type": "Pass",
+            "Parameters": {
+                "lambda_arn.$": "$.dynamo_result.Item.lambda_arn.S",
+                "input.$": "$.lambda_result.Payload.input"
+            },
+            "Next": "InvokeLambda"
+        },
+        "Done": {
+            "Type": "Succeed"
+        }
+    }
+}
