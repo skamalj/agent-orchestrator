@@ -48,13 +48,20 @@
                 "Payload.$": "$.input"
             },
             "ResultSelector": {
-                "nextagent.$": "States.StringToJson($.Payload).nextagent",
-                "message.$": "States.StringToJson($.Payload).message",
-                "thread_id.$": "States.StringToJson($.Payload).thread_id",
-                "channel_type.$": "States.StringToJson($.Payload).channel_type",
-                "from.$": "States.StringToJson($.Payload).from"
+                "parsed.$": "States.StringToJson($.Payload)"
             },
             "ResultPath": "$",
+            "Next": "UnpackParsedResult"
+        },
+        "UnpackParsedResult": {
+            "Type": "Pass",
+            "Parameters": {
+                "nextagent.$": "$.parsed.nextagent",
+                "message.$": "$.parsed.message",
+                "thread_id.$": "$.parsed.thread_id",
+                "channel_type.$": "$.parsed.channel_type",
+                "from.$": "$.parsed.from"
+            },
             "Next": "CheckNextAgent"
         },
         "Done": {
