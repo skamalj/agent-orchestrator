@@ -1,5 +1,5 @@
 {
-    "StartAt": "InvokeLambda",
+    "StartAt": "CheckNextAgent",
     "States": {
         "InvokeLambda": {
             "Type": "Task",
