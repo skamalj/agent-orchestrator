@@ -56,11 +56,11 @@
         "UnpackParsedResult": {
             "Type": "Pass",
             "Parameters": {
-                "nextagent.$": "$.lambda_result.Payload.nextagent",
-                "message.$": "$.lambda_result.Payload.message",
-                "thread_id.$": "$.lambda_result.Payload.thread_id",
-                "channel_type.$": "$.lambda_result.Payload.channel_type",
-                "from.$": "$.lambda_result.Payload.from"
+                "nextagent.$": "$.lambda_result.nextagent",
+                "message.$": "$.lambda_result.message",
+                "thread_id.$": "$.lambda_result.thread_id",
+                "channel_type.$": "$.lambda_result.channel_type",
+                "from.$": "$.lambda_result.from"
             },
             "Next": "CheckNextAgent"
         },
