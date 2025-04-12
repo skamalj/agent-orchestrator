@@ -42,10 +42,13 @@
         },
         "InvokeLambda": {
             "Type": "Task",
-            "Resource": "arn:aws:states:::lambda:invoke",
+            "Resource": "arn:aws:states:::lambda:invoke.waitForTaskToken",
             "Parameters": {
                 "FunctionName.$": "$.lambda_arn",
-                "Payload.$": "$.input"
+                "Payload": {
+                    "taskToken.$": "$$.Task.Token",
+                    "input.$": "$.input"
+                }
             },
             "ResultSelector": {
                 "parsed.$": "States.StringToJson($.Payload)"
