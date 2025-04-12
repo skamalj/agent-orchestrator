@@ -1,21 +1,11 @@
 {
     "StartAt": "CheckNextAgent",
     "States": {
-        "InvokeLambda": {
-            "Type": "Task",
-            "Resource": "arn:aws:states:::lambda:invoke",
-            "Parameters": {
-                "FunctionName.$": "$.lambda_arn",
-                "Payload.$": "$.input"
-            },
-            "ResultPath": "$.lambda_result",
-            "Next": "CheckNextAgent"
-        },
         "CheckNextAgent": {
             "Type": "Choice",
             "Choices": [
                 {
-                    "Variable": "$.lambda_result.Payload.next_agent",
+                    "Variable": "$.nextagent",
                     "StringEquals": "END",
                     "Next": "Done"
                 }
@@ -29,7 +19,7 @@
                 "TableName": "AgentRegistry",
                 "Key": {
                     "agent_name": {
-                        "S.$": "$.lambda_result.Payload.next_agent"
+                        "S.$": "$.nextagent"
                     }
                 }
             },
@@ -40,9 +30,32 @@
             "Type": "Pass",
             "Parameters": {
                 "lambda_arn.$": "$.dynamo_result.Item.lambda_arn.S",
-                "input.$": "$.lambda_result.Payload.input"
+                "input": {
+                    "nextagent.$": "$.nextagent",
+                    "message.$": "$.message",
+                    "thread_id.$": "$.thread_id",
+                    "channel_type.$": "$.channel_type",
+                    "from.$": "$.from"
+                }
             },
             "Next": "InvokeLambda"
+        },
+        "InvokeLambda": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::lambda:invoke",
+            "Parameters": {
+                "FunctionName.$": "$.lambda_arn",
+                "Payload.$": "$.input"
+            },
+            "ResultSelector": {
+                "nextagent.$": "States.StringToJson($.Payload).nextagent",
+                "message.$": "States.StringToJson($.Payload).message",
+                "thread_id.$": "States.StringToJson($.Payload).thread_id",
+                "channel_type.$": "States.StringToJson($.Payload).channel_type",
+                "from.$": "States.StringToJson($.Payload).from"
+            },
+            "ResultPath": "$",
+            "Next": "CheckNextAgent"
         },
         "Done": {
             "Type": "Succeed"
