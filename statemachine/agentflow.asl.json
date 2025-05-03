@@ -32,6 +32,7 @@
                 "lambda_arn.$": "$.dynamo_result.Item.lambda_arn.S",
                 "input": {
                     "nextagent.$": "$.nextagent",
+                    "fromagent.$": "$.fromagent",
                     "message.$": "$.message",
                     "thread_id.$": "$.thread_id",
                     "channel_type.$": "$.channel_type",
@@ -56,6 +57,7 @@
         "UnpackParsedResult": {
             "Type": "Pass",
             "Parameters": {
+                "fromagent.$": "$.lambda_result.fromagent",
                 "nextagent.$": "$.lambda_result.nextagent",
                 "message.$": "$.lambda_result.message",
                 "thread_id.$": "$.lambda_result.thread_id",
